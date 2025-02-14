@@ -59,6 +59,8 @@
 
 #include "pid.h"
 
+#define PITCH_PRECOMP_CUTOFF          10.0f
+
 static FAST_DATA_ZERO_INIT pid_t pid;
 
 
@@ -232,6 +234,9 @@ void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
 
     // Collective/cyclic deflection lowpass filters
     lowpassFilterInit(&pid.precomp.yawPrecompFilter, pidProfile->yaw_precomp_filter_type, pidProfile->yaw_precomp_cutoff, pid.freq, 0);
+
+    // Collective deflection lowpass filter
+    lowpassFilterInit(&pid.precomp.pitchPrecompFilter, LPF_1ST_ORDER, PITCH_PRECOMP_CUTOFF, pid.freq, 0);
 
     // RPM change filter
     difFilterUpdate(&pid.precomp.yawInertiaFilter, pidProfile->yaw_inertia_precomp_cutoff / 10.0f, pid.freq);
@@ -482,7 +487,7 @@ static void pidApplyPrecomp(void)
   //// Collective-to-Pitch precomp
 
     // Collective component
-    const float pitchPrecomp = collectiveDeflection * pid.precomp.pitchCollectiveFFGain;
+    const float pitchPrecomp = filterApply(&pid.precomp.pitchPrecompFilter, collectiveDeflection) * pid.precomp.pitchCollectiveFFGain;
 
     // Add to PITCH feedforward
     pid.data[FD_PITCH].F += pitchPrecomp;
