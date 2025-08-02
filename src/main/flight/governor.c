@@ -932,7 +932,7 @@ static float govMode1Control(void)
     gov.P = constrainf(gov.P, -gov.Lp, gov.Lp);
     gov.I = constrainf(gov.I,       0, gov.Li);
     gov.D = constrainf(gov.D, -gov.Ld, gov.Ld);
-    gov.F = constrainf(gov.F,       0, gov.Lf);
+    gov.F = constrainf(gov.F,   -0.2f, gov.Lf);
 
     // Governor PIDF sum
     gov.pidSum = gov.P + gov.I + gov.C + gov.D + gov.F;
