@@ -27,6 +27,7 @@
 
 #include "common/filter.h"
 #include "common/maths.h"
+#include "common/axis.h"
 
 #include "config/feature.h"
 #include "config/config.h"
@@ -45,6 +46,7 @@
 #include "flight/governor.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
+
 
 
 // Throttle mapping in IDLE state
@@ -439,10 +441,13 @@ static void govUpdateData(void)
     float collectiveFF = gov.collectiveWeight * getCollectiveDeflectionAbs();
 
     // Calculate feedforward from cyclic deflection
-    float cyclicFF = gov.cyclicWeight * getCyclicDeflection();
+    // float cyclicFF = gov.cyclicWeight * getCyclicDeflection();
+
+    float cyclicFF = gov.cyclicWeight * sqrtf(sq(pidGetSetpoint(FD_ROLL)) + sq(pidGetSetpoint(FD_PITCH))) * 0.003f;
 
     // Calculate feedforward from yaw deflection
-    float yawFF = gov.yawWeight * getYawDeflectionAbs();
+    // float yawFF = gov.yawWeight * getYawDeflectionAbs();
+    float yawFF = gov.yawWeight * fabsf(pidGetSetpoint(FD_YAW)) * 0.003f;
 
     // Angle-of-attack vs. FeedForward curve
     float totalFF = collectiveFF + cyclicFF + yawFF;
