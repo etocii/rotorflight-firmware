@@ -447,7 +447,7 @@ static void govUpdateData(void)
 
     // Calculate feedforward from yaw deflection
     // float yawFF = gov.yawWeight * getYawDeflectionAbs();
-    float yawFF = gov.yawWeight * fabsf(pidGetSetpoint(FD_YAW)) * 0.003f;
+    float yawFF = gov.yawWeight * pidGetSetpoint(FD_YAW) * 0.003f;
 
     // Angle-of-attack vs. FeedForward curve
     float totalFF = collectiveFF + cyclicFF + yawFF;
