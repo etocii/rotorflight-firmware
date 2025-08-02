@@ -889,7 +889,17 @@ static void pidApplyYawMode3(void)
   //// Feedforward
 
     // Calculate F component
-    pid.data[axis].F = pid.coef[axis].Kf * setpoint;
+    // pid.data[axis].F = pid.coef[axis].Kf * setpoint;
+    float fgain123;
+    
+    if (setpoint >= 0) {
+      fgain123 = pid.coef[axis].Kf * pid.yawCWStopGain; //CCW need more FF
+    }
+    else {
+      fgain123 = pid.coef[axis].Kf * pid.yawCCWStopGain; // CW need less FF
+    }
+
+    pid.data[axis].F = fgain123 * setpoint;
 
 
   //// Feedforward Boost (FF Derivative)
