@@ -139,6 +139,8 @@ typedef struct pid_s {
 
     pt1Filter_t offsetFloodRelaxFilter;
 
+    oneWayLPF_t oneWayLPF123;
+
 } pidData_t;
 
 

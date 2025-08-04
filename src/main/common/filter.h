@@ -291,3 +291,17 @@ typedef struct simpleLowpassFilter_s {
 
 int32_t simpleLPFilterUpdate(simpleLowpassFilter_t *filter, int32_t newVal);
 void simpleLPFilterInit(simpleLowpassFilter_t *filter, int32_t beta, int32_t fpShift);
+
+
+
+// One-way LPF
+
+typedef struct oneWayLPF_s {
+    float alpha;
+    float dt;
+    float prev;
+} oneWayLPF_t;
+
+void oneWayLPFInit(oneWayLPF_t *filter, float cutoff, float dt1);
+float oneWayLPFApply(oneWayLPF_t *filter, float input);
+

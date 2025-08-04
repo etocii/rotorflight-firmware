@@ -447,7 +447,7 @@ static void govUpdateData(void)
 
     // Calculate feedforward from yaw deflection
     // float yawFF = gov.yawWeight * getYawDeflectionAbs();
-    float yawFF = gov.yawWeight * pidGetSetpoint(FD_YAW) * 0.003f;
+    float yawFF = gov.yawWeight * fabsf(pidGetSetpoint(FD_YAW)) * 0.003f;
 
     // Angle-of-attack vs. FeedForward curve
     float totalFF = collectiveFF + cyclicFF + yawFF;
@@ -932,7 +932,7 @@ static float govMode1Control(void)
     gov.P = constrainf(gov.P, -gov.Lp, gov.Lp);
     gov.I = constrainf(gov.I,       0, gov.Li);
     gov.D = constrainf(gov.D, -gov.Ld, gov.Ld);
-    gov.F = constrainf(gov.F,   -0.2f, gov.Lf);
+    gov.F = constrainf(gov.F,       0, gov.Lf);
 
     // Governor PIDF sum
     gov.pidSum = gov.P + gov.I + gov.C + gov.D + gov.F;

@@ -853,3 +853,29 @@ void simpleLPFilterInit(simpleLowpassFilter_t *filter, int32_t beta, int32_t fpS
     filter->beta = beta;
     filter->fpShift = fpShift;
 }
+
+
+// One-direction simple first order LPF (other direction follows input)
+
+void oneWayLPFInit(oneWayLPF_t *filter, float cutoff, float dt1)
+{
+    filter->alpha = cutoff;
+    filter->dt = dt1;
+    filter->prev = 0.0f;
+}
+
+float oneWayLPFApply(oneWayLPF_t *filter, float input)
+{
+    if (input < 0) {
+        if (input < filter->prev) {
+            filter->prev += (input - filter->prev) * filter->alpha * filter->dt;
+        }
+        else {
+            filter->prev = input;
+        }
+    }
+    else {
+        filter->prev = 0.0f;
+    }
+    return filter->prev;
+}

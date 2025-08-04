@@ -153,6 +153,9 @@ static void INIT_CODE pidInitFilters(const pidProfile_t *pidProfile)
     // Cross-coupling filters
     firstOrderHPFInit(&pid.crossCouplingFilter[FD_PITCH], pidProfile->cyclic_cross_coupling_cutoff / 10.0f, pid.freq);
     firstOrderHPFInit(&pid.crossCouplingFilter[FD_ROLL], pidProfile->cyclic_cross_coupling_cutoff / 10.0f, pid.freq);
+    
+    // One way filter
+    oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
 }
 
 void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
@@ -259,6 +262,9 @@ void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
     // Cross-coupling filters
     firstOrderHPFUpdate(&pid.crossCouplingFilter[FD_PITCH], pidProfile->cyclic_cross_coupling_cutoff / 10.0f, pid.freq);
     firstOrderHPFUpdate(&pid.crossCouplingFilter[FD_ROLL], pidProfile->cyclic_cross_coupling_cutoff / 10.0f, pid.freq);
+
+    // One way filter
+    oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
 
     // Offset flood
     pid.offsetFloodRelaxLevel = 1.0f / constrain(pidProfile->offset_flood_relax_level, 10, 250);
@@ -817,7 +823,7 @@ static void pidApplyCyclicMode3(uint8_t axis)
 }
 
 
-static void pidApplyYawMode3(void)
+static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 {
     const uint8_t axis = FD_YAW;
 
@@ -889,18 +895,22 @@ static void pidApplyYawMode3(void)
   //// Feedforward
 
     // Calculate F component
-    // pid.data[axis].F = pid.coef[axis].Kf * setpoint;
-    float fgain123;
+    pid.data[axis].F = pid.coef[axis].Kf * setpoint;
+    // float fgain123;
     
-    if (setpoint >= 0) {
-      fgain123 = pid.coef[axis].Kf * pid.yawCWStopGain; //CCW need more FF
-    }
-    else {
-      fgain123 = pid.coef[axis].Kf * pid.yawCCWStopGain; // CW need less FF
-    }
+    // if (setpoint >= 0) {
+    //   fgain123 = pid.coef[axis].Kf * pid.yawCWStopGain; //CCW need more FF
+    // }
+    // else {
+    //   fgain123 = pid.coef[axis].Kf * pid.yawCCWStopGain; // CW need less FF
+    // }
+    // pid.data[axis].F = fgain123 * setpoint;
 
-    pid.data[axis].F = fgain123 * setpoint;
+    //One_way_ff
+    float owfgain = pidProfile->one_way_gain * YAW_F_TERM_SCALE;
+    float owFF = oneWayLPFApply(&pid.oneWayLPF123, setpoint) * owfgain;
 
+    pid.data[axis].F -= owFF;
 
   //// Feedforward Boost (FF Derivative)
 
@@ -937,7 +947,7 @@ void pidController(const pidProfile_t *pidProfile, timeUs_t currentTimeUs)
             pidApplyOffsetBleed();
             pidApplyOffsetFlood();
             pidApplyCyclicCrossCoupling();
-            pidApplyYawMode3();
+            pidApplyYawMode3(pidProfile);
             break;
         default:
             pidApplyMode0(PID_ROLL);
