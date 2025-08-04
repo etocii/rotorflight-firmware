@@ -156,6 +156,9 @@ static void INIT_CODE pidInitFilters(const pidProfile_t *pidProfile)
     
     // One way filter
     oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
+
+    // Extra P filter
+    difFilterInit(&pid.extraYawP, 6.0f, pid.freq);
 }
 
 void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
@@ -265,6 +268,9 @@ void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
 
     // One way filter
     oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
+
+    // Extra Stop Gain filter
+    difFilterUpdate(&pid.extraYawP, 6.0f, pid.freq);
 
     // Offset flood
     pid.offsetFloodRelaxLevel = 1.0f / constrain(pidProfile->offset_flood_relax_level, 10, 250);
@@ -840,12 +846,6 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     const float stopGain = transition(errorRate, -10, 10, pid.yawCCWStopGain, pid.yawCWStopGain);
 
 
-  //// P-term
-
-    // Calculate P-component
-    pid.data[axis].P = pid.coef[axis].Kp * errorRate * stopGain;
-
-
   //// D-term
 
     // Calculate D-term with bandwidth limit
@@ -853,6 +853,21 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 
     // Calculate D-component
     pid.data[axis].D = pid.coef[axis].Kd * dTerm;
+
+  //// P-term
+
+    // Add P boost at pos direction
+
+    float extraD = difFilterApply(&pid.extraYawP, setpoint);
+    float addedP = 0.0f;
+
+    if (extraD > 0) {
+      addedP = constrainf(extraD * 0.00007f, 0.0f, 0.5f);
+    } 
+
+
+    // Calculate P-component
+    pid.data[axis].P = pid.coef[axis].Kp * errorRate * stopGain * (1.0f + addedP);
 
 
   //// I-term
@@ -886,7 +901,9 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 
     pid.data[axis].axisError -= errorDecay * pid.dT;
 
-    DEBUG_AXIS(ERROR_DECAY, axis, 0, decayRate * 100);
+    //DEBUG_AXIS(ERROR_DECAY, axis, 0, decayRate * 100);
+    DEBUG_AXIS(ERROR_DECAY, axis, 0, (1.0f + addedP) * 100);
+
     DEBUG_AXIS(ERROR_DECAY, axis, 1, decayLimit);
     DEBUG_AXIS(ERROR_DECAY, axis, 2, errorDecay * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 3, pid.data[axis].axisError * 10);

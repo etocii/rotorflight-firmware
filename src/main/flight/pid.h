@@ -141,6 +141,8 @@ typedef struct pid_s {
 
     oneWayLPF_t oneWayLPF123;
 
+    difFilter_t extraYawP;
+
 } pidData_t;
 
 
