@@ -860,10 +860,17 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 
     float extraD = difFilterApply(&pid.extraYawP, setpoint);
     float addedP = 0.0f;
+    float extraCWStopGain = pidProfile->extra_cw_stop_gain;
+    float extraCCWStopGain = pidProfile->extra_ccw_stop_gain;
+
+    float extraKp_scale = (1.0f - getCollectiveDeflectionAbs() * pidProfile->extra_p_scale_collective / 100.0f);
 
     if (extraD > 0) {
-      addedP = constrainf(extraD * 0.00007f, 0.0f, 0.5f);
+      addedP = constrainf(extraD * 0.000002f * extraCWStopGain * extraKp_scale, 0.0f, 1.0f);
     } 
+    else {
+      addedP = constrainf(-extraD * 0.000002f * extraCCWStopGain * extraKp_scale, 0.0f, 1.0f);
+    }
 
 
     // Calculate P-component
@@ -904,7 +911,7 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     //DEBUG_AXIS(ERROR_DECAY, axis, 0, decayRate * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 0, (1.0f + addedP) * 100);
 
-    DEBUG_AXIS(ERROR_DECAY, axis, 1, decayLimit);
+    DEBUG_AXIS(ERROR_DECAY, axis, 1, extraKp_scale * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 2, errorDecay * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 3, pid.data[axis].axisError * 10);
 
@@ -913,15 +920,6 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 
     // Calculate F component
     pid.data[axis].F = pid.coef[axis].Kf * setpoint;
-    // float fgain123;
-    
-    // if (setpoint >= 0) {
-    //   fgain123 = pid.coef[axis].Kf * pid.yawCWStopGain; //CCW need more FF
-    // }
-    // else {
-    //   fgain123 = pid.coef[axis].Kf * pid.yawCCWStopGain; // CW need less FF
-    // }
-    // pid.data[axis].F = fgain123 * setpoint;
 
     //One_way_ff
     float owfgain = pidProfile->one_way_gain * YAW_F_TERM_SCALE;

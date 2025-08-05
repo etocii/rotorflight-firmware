@@ -122,8 +122,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .governor.collective_ff_weight = 100,
         .governor.max_throttle = 100,
         .governor.min_throttle = 10,
-        .one_way_cutoff = 30,
-        .one_way_gain = 0,
+        .one_way_cutoff = 25,
+        .one_way_gain = 45,
+        .extra_cw_stop_gain = 45,
+        .extra_ccw_stop_gain = 0,
+        .extra_p_scale_collective = 0,
     );
 }
 

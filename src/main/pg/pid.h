@@ -178,6 +178,11 @@ typedef struct pidProfile_s {
     uint8_t             one_way_cutoff;
     uint8_t             one_way_gain;
 
+    uint8_t             extra_cw_stop_gain;
+    uint8_t             extra_ccw_stop_gain;
+
+    uint8_t             extra_p_scale_collective;
+
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);

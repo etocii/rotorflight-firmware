@@ -1016,6 +1016,11 @@ static bool mspCommonProcessOutCommand(int16_t cmdMSP, sbuf_t *dst, mspPostProce
          * sbufWriteU8(dst, currentPidProfile->yourFancyParameterA);
          * sbufWriteU8(dst, currentPidProfile->yourFancyParameterB);
          */
+        sbufWriteU8(dst, currentPidProfile->one_way_cutoff);
+        sbufWriteU8(dst, currentPidProfile->one_way_gain);
+        sbufWriteU8(dst, currentPidProfile->extra_cw_stop_gain);
+        sbufWriteU8(dst, currentPidProfile->extra_ccw_stop_gain);
+        sbufWriteU8(dst, currentPidProfile->extra_p_scale_collective);
         break;
 
     default:
@@ -3684,6 +3689,13 @@ static mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, int16_t cm
          *     currentPidProfile->yourFancyParameterB = sbufReadU8(src);
          * }
          */
+        if (sbufBytesRemaining(src) >= 5) {
+            currentPidProfile->one_way_cutoff = sbufReadU8(src);
+            currentPidProfile->one_way_gain = sbufReadU8(src);
+            currentPidProfile->extra_cw_stop_gain = sbufReadU8(src);
+            currentPidProfile->extra_ccw_stop_gain = sbufReadU8(src);
+            currentPidProfile->extra_p_scale_collective = sbufReadU8(src);
+        }
         break;
 
     default:
