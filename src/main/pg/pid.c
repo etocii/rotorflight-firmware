@@ -127,6 +127,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .extra_cw_stop_gain = 45,
         .extra_ccw_stop_gain = 0,
         .extra_p_scale_collective = 0,
+        .coll_precomp_scale_yaw = 0,
     );
 }
 

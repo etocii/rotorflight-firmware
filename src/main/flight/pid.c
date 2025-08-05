@@ -447,7 +447,7 @@ static inline float dragCoef(float x)
   return x * x;
 }
 
-static void pidApplyPrecomp(void)
+static void pidApplyPrecomp(const pidProfile_t *pidProfile)
 {
     // Yaw precompensation direction and ratio
     const float masterGain = mixerRotationSign() * getSpoolUpRatio();
@@ -472,10 +472,12 @@ static void pidApplyPrecomp(void)
 
 
   //// Collective-to-Yaw Precomp
+    // Yaw Precomp Multiplier
+    const float yawPrecompScale = constrainf((1.0f - fabsf(pidGetSetpoint(FD_YAW)) * pidProfile->coll_precomp_scale_yaw / 50000.0f), 0.0f, 1.0f);
 
     // Equivalent Average main rotor deflection
     const float mainDeflection =
-      fabsf(collectiveDeflection) * pid.precomp.yawCollectiveFFGain +
+      fabsf(collectiveDeflection) * pid.precomp.yawCollectiveFFGain * yawPrecompScale +
       fabsf(cyclicDeflection) * pid.precomp.yawCyclicFFGain;
 
     // Drag estimate
@@ -491,7 +493,7 @@ static void pidApplyPrecomp(void)
     pid.data[FD_YAW].F += totalPrecomp;
     pid.data[FD_YAW].pidSum += totalPrecomp;
 
-    DEBUG(YAW_PRECOMP, 0, totalPrecomp * 1000);
+    DEBUG(YAW_PRECOMP, 0, yawPrecompScale * 100);
     DEBUG(YAW_PRECOMP, 1, mainPrecomp * 1000);
     DEBUG(YAW_PRECOMP, 2, mainDeflection * 1000);
     DEBUG(YAW_PRECOMP, 3, collectiveDeflection * 1000);
@@ -975,7 +977,7 @@ void pidController(const pidProfile_t *pidProfile, timeUs_t currentTimeUs)
     pidApplyCollective();
 
     // Calculate cyclic/collective precompensation
-    pidApplyPrecomp();
+    pidApplyPrecomp(pidProfile);
 
     // Reset PID control if gyro overflow detected
     if (gyroOverflowDetected())
