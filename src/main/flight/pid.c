@@ -860,12 +860,12 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 
     // Add P boost at pos direction
 
-    float extraD = difFilterApply(&pid.extraYawP, setpoint);
+    const float extraD = difFilterApply(&pid.extraYawP, setpoint);
     float addedP = 0.0f;
-    float extraCWStopGain = pidProfile->extra_cw_stop_gain;
-    float extraCCWStopGain = pidProfile->extra_ccw_stop_gain;
+    const float extraCWStopGain = pidProfile->extra_cw_stop_gain;
+    const float extraCCWStopGain = pidProfile->extra_ccw_stop_gain;
 
-    float extraKp_scale = (1.0f - getCollectiveDeflectionAbs() * pidProfile->extra_p_scale_collective / 100.0f);
+    const float extraKp_scale = (1.0f - getCollectiveDeflectionAbs() * pidProfile->extra_p_scale_collective / 100.0f);
 
     if (extraD > 0) {
       addedP = constrainf(extraD * 0.000002f * extraCWStopGain * extraKp_scale, 0.0f, 1.0f);
@@ -924,8 +924,8 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     pid.data[axis].F = pid.coef[axis].Kf * setpoint;
 
     //One_way_ff
-    float owfgain = pidProfile->one_way_gain * YAW_F_TERM_SCALE;
-    float owFF = oneWayLPFApply(&pid.oneWayLPF123, setpoint) * owfgain;
+    const float owfgain = pidProfile->one_way_gain * YAW_F_TERM_SCALE;
+    const float owFF = oneWayLPFApply(&pid.oneWayLPF123, setpoint) * owfgain;
 
     pid.data[axis].F -= owFF;
 
