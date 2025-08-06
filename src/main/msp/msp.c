@@ -1023,6 +1023,8 @@ static bool mspCommonProcessOutCommand(int16_t cmdMSP, sbuf_t *dst, mspPostProce
         sbufWriteU8(dst, currentPidProfile->extra_ccw_stop_gain);
         sbufWriteU8(dst, currentPidProfile->extra_p_scale_collective);
         sbufWriteU8(dst, currentPidProfile->coll_precomp_scale_yaw);
+        sbufWriteU8(dst, currentPidProfile->extra_pitch_stop_cutoff);
+        sbufWriteU8(dst, currentPidProfile->extra_pitch_stop_gain);
         break;
 
     default:
@@ -3691,7 +3693,7 @@ static mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, int16_t cm
          *     currentPidProfile->yourFancyParameterB = sbufReadU8(src);
          * }
          */
-        if (sbufBytesRemaining(src) >= 6) {
+        if (sbufBytesRemaining(src) >= 9) {
             currentPidProfile->one_way_cutoff = sbufReadU8(src);
             currentPidProfile->one_way_gain = sbufReadU8(src);
             currentPidProfile->extra_stop_cutoff = sbufReadU8(src);
@@ -3699,6 +3701,8 @@ static mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, int16_t cm
             currentPidProfile->extra_ccw_stop_gain = sbufReadU8(src);
             currentPidProfile->extra_p_scale_collective = sbufReadU8(src);
             currentPidProfile->coll_precomp_scale_yaw = sbufReadU8(src);
+            currentPidProfile->extra_pitch_stop_cutoff = sbufReadU8(src);
+            currentPidProfile->extra_pitch_stop_gain = sbufReadU8(src);
         }
         break;
 

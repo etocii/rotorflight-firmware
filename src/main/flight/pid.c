@@ -159,6 +159,10 @@ static void INIT_CODE pidInitFilters(const pidProfile_t *pidProfile)
 
     // Extra P filter
     difFilterInit(&pid.extraYawP, pidProfile->extra_stop_cutoff / 10.0f, pid.freq);
+
+    // Extra Pitch filter
+    difFilterInit(&pid.extraPitchP, pidProfile->extra_pitch_stop_cutoff / 10.0f, pid.freq);
+
 }
 
 void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
@@ -271,6 +275,11 @@ void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
 
     // Extra Stop Gain filter
     difFilterUpdate(&pid.extraYawP, pidProfile->extra_stop_cutoff / 10.0f, pid.freq);
+
+    // Extra Pitch Stop filter
+    difFilterUpdate(&pid.extraPitchP, pidProfile->extra_pitch_stop_cutoff / 10.0f, pid.freq);
+    // Gain
+    pid.extraPitchPGain = pidProfile->extra_pitch_stop_gain * 0.000002f;
 
     // Offset flood
     pid.offsetFloodRelaxLevel = 1.0f / constrain(pidProfile->offset_flood_relax_level, 10, 250);
@@ -708,8 +717,16 @@ static void pidApplyCyclicMode3(uint8_t axis)
 
   //// P-term
 
+    // Extra Pitch stop gain
+    float addedPitchP = 0.0f;
+
+    if (axis == PID_PITCH) {
+      const float extraPitchD = difFilterApply(&pid.extraPitchP, setpoint);
+      addedPitchP = constrainf(fabsf(extraPitchD * pid.extraPitchPGain), 0.0f, 0.35f);
+    }
+
     // Calculate P-component
-    pid.data[axis].P = pid.coef[axis].Kp * errorRate;
+    pid.data[axis].P = pid.coef[axis].Kp * errorRate * (1.0f + addedPitchP);
 
 
   //// D-term (gyro only)
@@ -758,7 +775,7 @@ static void pidApplyCyclicMode3(uint8_t axis)
 
     pid.data[axis].axisError -= errorDecay * pid.dT;
 
-    DEBUG_AXIS(ERROR_DECAY, axis, 0, errorDecayRate * 100);
+    DEBUG_AXIS(ERROR_DECAY, axis, 0, addedPitchP * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 1, errorDecayLimit);
     DEBUG_AXIS(ERROR_DECAY, axis, 2, errorDecay * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 3, pid.data[axis].axisError * 10);

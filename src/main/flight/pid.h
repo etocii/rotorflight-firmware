@@ -143,6 +143,10 @@ typedef struct pid_s {
 
     difFilter_t extraYawP;
 
+    difFilter_t extraPitchP;
+
+    float       extraPitchPGain;
+
 } pidData_t;
 
 
