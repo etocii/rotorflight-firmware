@@ -124,6 +124,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .governor.min_throttle = 10,
         .one_way_cutoff = 25,
         .one_way_gain = 45,
+        .extra_stop_cutoff = 60,
         .extra_cw_stop_gain = 45,
         .extra_ccw_stop_gain = 0,
         .extra_p_scale_collective = 0,

@@ -158,7 +158,7 @@ static void INIT_CODE pidInitFilters(const pidProfile_t *pidProfile)
     oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
 
     // Extra P filter
-    difFilterInit(&pid.extraYawP, 6.0f, pid.freq);
+    difFilterInit(&pid.extraYawP, pidProfile->extra_stop_cutoff / 10.0f, pid.freq);
 }
 
 void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
@@ -270,7 +270,7 @@ void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
     oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
 
     // Extra Stop Gain filter
-    difFilterUpdate(&pid.extraYawP, 6.0f, pid.freq);
+    difFilterUpdate(&pid.extraYawP, pidProfile->extra_stop_cutoff / 10.0f, pid.freq);
 
     // Offset flood
     pid.offsetFloodRelaxLevel = 1.0f / constrain(pidProfile->offset_flood_relax_level, 10, 250);

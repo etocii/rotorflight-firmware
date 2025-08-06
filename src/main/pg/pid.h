@@ -178,6 +178,7 @@ typedef struct pidProfile_s {
     uint8_t             one_way_cutoff;
     uint8_t             one_way_gain;
 
+    uint8_t             extra_stop_cutoff;
     uint8_t             extra_cw_stop_gain;
     uint8_t             extra_ccw_stop_gain;
 
