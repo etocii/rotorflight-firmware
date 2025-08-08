@@ -155,7 +155,8 @@ static void INIT_CODE pidInitFilters(const pidProfile_t *pidProfile)
     firstOrderHPFInit(&pid.crossCouplingFilter[FD_ROLL], pidProfile->cyclic_cross_coupling_cutoff / 10.0f, pid.freq);
     
     // One way filter
-    oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
+    oneWayLPFInit(&pid.oneWayLPFCW, pidProfile->one_way_cutoff / 10.0f, pid.dT);
+    oneWayLPFInit(&pid.oneWayLPFCCW, pidProfile->one_way_cutoff / 10.0f, pid.dT);
 
     // Extra P filter
     difFilterInit(&pid.extraYawP, pidProfile->extra_stop_cutoff / 10.0f, pid.freq);
@@ -271,7 +272,8 @@ void INIT_CODE pidInitProfile(const pidProfile_t *pidProfile)
     firstOrderHPFUpdate(&pid.crossCouplingFilter[FD_ROLL], pidProfile->cyclic_cross_coupling_cutoff / 10.0f, pid.freq);
 
     // One way filter
-    oneWayLPFInit(&pid.oneWayLPF123, pidProfile->one_way_cutoff / 10.0f, pid.dT);
+    oneWayLPFInit(&pid.oneWayLPFCW, pidProfile->one_way_cutoff / 10.0f, pid.dT);
+    oneWayLPFInit(&pid.oneWayLPFCCW, pidProfile->one_way_cutoff / 10.0f, pid.dT);
 
     // Extra Stop Gain filter
     difFilterUpdate(&pid.extraYawP, pidProfile->extra_stop_cutoff / 10.0f, pid.freq);
@@ -722,7 +724,7 @@ static void pidApplyCyclicMode3(uint8_t axis)
 
     if (axis == PID_PITCH) {
       const float extraPitchD = difFilterApply(&pid.extraPitchP, setpoint);
-      addedPitchP = constrainf(fabsf(extraPitchD * pid.extraPitchPGain), 0.0f, 0.35f);
+      addedPitchP = constrainf(fabsf(extraPitchD * pid.extraPitchPGain), 0.0f, 1.0f);
     }
 
     // Calculate P-component
@@ -875,7 +877,7 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
 
   //// P-term
 
-    // Add P boost at pos direction
+    // Add P boost at both directions
 
     const float extraD = difFilterApply(&pid.extraYawP, setpoint);
     float addedP = 0.0f;
@@ -885,10 +887,10 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     const float extraKp_scale = (1.0f - getCollectiveDeflectionAbs() * pidProfile->extra_p_scale_collective / 100.0f);
 
     if (extraD > 0) {
-      addedP = constrainf(extraD * 0.000002f * extraCWStopGain * extraKp_scale, 0.0f, 1.0f);
+      addedP = constrainf(extraD * 0.000005f * extraCWStopGain * extraKp_scale, 0.0f, 2.0f);
     } 
     else {
-      addedP = constrainf(-extraD * 0.000002f * extraCCWStopGain * extraKp_scale, 0.0f, 1.0f);
+      addedP = constrainf(-extraD * 0.000005f * extraCCWStopGain * extraKp_scale, 0.0f, 2.0f);
     }
 
 
@@ -941,10 +943,13 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     pid.data[axis].F = pid.coef[axis].Kf * setpoint;
 
     //One_way_ff
-    const float owfgain = pidProfile->one_way_gain * YAW_F_TERM_SCALE;
-    const float owFF = oneWayLPFApply(&pid.oneWayLPF123, setpoint) * owfgain;
+    const float owfgain_cw = pidProfile->one_way_gain_cw * YAW_F_TERM_SCALE;
+    const float owFF_cw = oneWayLPFApply(&pid.oneWayLPFCW, setpoint) * owfgain_cw;
 
-    pid.data[axis].F -= owFF;
+    const float owfgain_ccw = pidProfile->one_way_gain_ccw * YAW_F_TERM_SCALE;
+    const float owFF_ccw = -oneWayLPFApply(&pid.oneWayLPFCCW, -setpoint) * owfgain_ccw;
+
+    pid.data[axis].F -= owFF_cw + owFF_ccw;
 
   //// Feedforward Boost (FF Derivative)
 

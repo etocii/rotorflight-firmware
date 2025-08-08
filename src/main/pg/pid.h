@@ -176,7 +176,8 @@ typedef struct pidProfile_s {
     governorProfile_t   governor;
 
     uint8_t             one_way_cutoff;
-    uint8_t             one_way_gain;
+    uint8_t             one_way_gain_cw;
+    uint8_t             one_way_gain_ccw;
 
     uint8_t             extra_stop_cutoff;
     uint8_t             extra_cw_stop_gain;
