@@ -1158,7 +1158,8 @@ const clivalue_t valueTable[] = {
     { "exstop_cutoff",              VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, extra_stop_cutoff) },
     { "excwstop_gain",              VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, extra_cw_stop_gain) },
     { "exccwstop_gain",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, extra_ccw_stop_gain) },
-
+    { "excwstop_d_gain",            VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, extra_cw_stop_d_gain) },
+    
     { "extrap_scale_collective",    VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, extra_p_scale_collective) },
 
     { "collprecomp_scale_yaw",      VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, coll_precomp_scale_yaw) },

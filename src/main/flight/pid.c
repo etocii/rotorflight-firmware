@@ -898,6 +898,11 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     pid.data[axis].P = pid.coef[axis].Kp * errorRate * stopGain * (1.0f + addedP);
 
 
+    // Also add some D gain
+    const float extraStopD = pidProfile->extra_cw_stop_d_gain * YAW_D_TERM_SCALE * extraD * dTerm;
+    pid.data[axis].D += extraStopD;
+
+
   //// I-term
 
     // Apply error relax
