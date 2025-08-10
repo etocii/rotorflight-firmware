@@ -870,7 +870,7 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
   //// D-term
 
     // Calculate D-term with bandwidth limit
-    const float dTerm = difFilterApply(&pid.dtermFilter[axis], -gyroRate);
+    const float dTerm = difFilterApply(&pid.dtermFilter[axis], errorRate);
 
     // Calculate D-component
     pid.data[axis].D = pid.coef[axis].Kd * dTerm;
@@ -884,23 +884,29 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     const float extraCWStopGain = pidProfile->extra_cw_stop_gain;
     const float extraCCWStopGain = pidProfile->extra_ccw_stop_gain;
 
-    const float extraKp_scale = (1.0f - getCollectiveDeflectionAbs() * pidProfile->extra_p_scale_collective / 100.0f);
+    const float extraKp_scale = MAX((1.0f - getCollectiveDeflectionAbs() * pidProfile->extra_p_scale_collective / 100.0f), 0.0f);
 
+    // Also add some D gain
+    const float extraStopDGain = pidProfile->extra_cw_stop_d_gain * YAW_D_TERM_SCALE;
+
+    float addedD = 0.0f;
+
+    
     if (extraD > 0) {
       addedP = constrainf(extraD * 0.000005f * extraCWStopGain * extraKp_scale, 0.0f, 2.0f);
+      addedD = constrainf(extraD * extraStopDGain * 0.00025f * extraKp_scale, 0.0f, 0.0001f);
     } 
     else {
       addedP = constrainf(-extraD * 0.000005f * extraCCWStopGain * extraKp_scale, 0.0f, 2.0f);
     }
 
+    pid.data[axis].D += addedD * dTerm;
 
     // Calculate P-component
     pid.data[axis].P = pid.coef[axis].Kp * errorRate * stopGain * (1.0f + addedP);
 
 
-    // Also add some D gain
-    const float extraStopD = pidProfile->extra_cw_stop_d_gain * YAW_D_TERM_SCALE * extraD * dTerm;
-    pid.data[axis].D += extraStopD;
+    
 
 
   //// I-term
@@ -935,9 +941,9 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     pid.data[axis].axisError -= errorDecay * pid.dT;
 
     //DEBUG_AXIS(ERROR_DECAY, axis, 0, decayRate * 100);
-    DEBUG_AXIS(ERROR_DECAY, axis, 0, (1.0f + addedP) * 100);
+    DEBUG_AXIS(ERROR_DECAY, axis, 0, pid.coef[axis].Kd * 1000000);
 
-    DEBUG_AXIS(ERROR_DECAY, axis, 1, extraKp_scale * 100);
+    DEBUG_AXIS(ERROR_DECAY, axis, 1, addedD * 1000000);
     DEBUG_AXIS(ERROR_DECAY, axis, 2, errorDecay * 100);
     DEBUG_AXIS(ERROR_DECAY, axis, 3, pid.data[axis].axisError * 10);
 
