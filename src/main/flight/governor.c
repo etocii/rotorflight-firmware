@@ -1103,7 +1103,7 @@ static void govUpdateGovernedState(void)
                     govChangeState(GOV_STATE_THROTTLE_IDLE);
                 else if (!gov.motorRPMGood)
                     govChangeState(GOV_STATE_THROTTLE_IDLE);
-                else if (gov.currentHeadSpeed > gov.requestedHeadSpeed * 0.99f || gov.throttleOutput > gov.maxSpoolupThrottle * 0.95f)
+                else if (gov.currentHeadSpeed > gov.requestedHeadSpeed * 0.95f || gov.throttleOutput > gov.maxSpoolupThrottle * 0.95f)
                     govChangeState(GOV_STATE_ACTIVE);
                 break;
 
@@ -1149,7 +1149,7 @@ static void govUpdateGovernedState(void)
                     govChangeState(GOV_STATE_THROTTLE_IDLE);
                 else if (!gov.motorRPMGood)
                     govChangeState(GOV_STATE_THROTTLE_IDLE);
-                else if (gov.currentHeadSpeed > gov.requestedHeadSpeed * 0.99f || gov.throttleOutput > gov.maxSpoolupThrottle * 0.95f)
+                else if (gov.currentHeadSpeed > gov.requestedHeadSpeed * 0.95f || gov.throttleOutput > gov.maxSpoolupThrottle * 0.95f)
                     govChangeState(GOV_STATE_ACTIVE);
                 break;
 
@@ -1180,7 +1180,7 @@ static void govUpdateGovernedState(void)
                     govChangeState(GOV_STATE_AUTOROTATION);
                 else if (!gov.motorRPMGood)
                     govChangeState(GOV_STATE_AUTOROTATION);
-                else if (gov.currentHeadSpeed > gov.requestedHeadSpeed * 0.99f || gov.throttleOutput > gov.maxSpoolupThrottle * 0.95f)
+                else if (gov.currentHeadSpeed > gov.requestedHeadSpeed * 0.95f || gov.throttleOutput > gov.maxSpoolupThrottle * 0.95f)
                     govChangeState(GOV_STATE_ACTIVE);
                 break;
 
