@@ -917,8 +917,8 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     // Saturation
     const bool saturation = (pidAxisSaturated(axis) && pid.data[axis].axisError * itermErrorRate > 0);
 
-    // I-term change
-    const float itermDelta = saturation ? 0 : itermErrorRate * pid.dT * stopGain;
+    // I-term change (also charge extra fast when stopping)
+    const float itermDelta = saturation ? 0 : itermErrorRate * pid.dT * stopGain * (1.0f + addedP);
 
     // Calculate I-component
     pid.data[axis].axisError = limitf(pid.data[axis].axisError + itermDelta, pid.errorLimit[axis]);
@@ -941,7 +941,7 @@ static void pidApplyYawMode3(const pidProfile_t *pidProfile)
     pid.data[axis].axisError -= errorDecay * pid.dT;
 
     //DEBUG_AXIS(ERROR_DECAY, axis, 0, decayRate * 100);
-    DEBUG_AXIS(ERROR_DECAY, axis, 0, pid.coef[axis].Kd * 1000000);
+    DEBUG_AXIS(ERROR_DECAY, axis, 0, (1.0f + addedP) * 100);
 
     DEBUG_AXIS(ERROR_DECAY, axis, 1, addedD * 1000000);
     DEBUG_AXIS(ERROR_DECAY, axis, 2, errorDecay * 100);
